@@ -1,0 +1,3 @@
+---
+BUNDLE_BUILD__OPENSSL: "--with-openssl-dir=C:/Ruby40-x64/msys64/mingw64bundle install"
+BUNDLE_WITHOUT: "development:test"
