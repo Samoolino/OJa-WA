@@ -18,6 +18,7 @@ module Spree
 
         ActiveRecord::Base.transaction do
           allocation = Spree::PlanAllocation.lock.find(plan_allocation.id)
+          return failure(errors: ['currency mismatch']) unless allocation.currency == currency
           prior = Spree::AllocationLedgerEntry.find_by(idempotency_key: idempotency_key)
           return success(allocation: allocation, ledger_entry: prior, replay: true) if prior
 
