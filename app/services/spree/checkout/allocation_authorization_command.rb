@@ -1,3 +1,5 @@
+require "ostruct"
+
 module Spree
   module Checkout
     class AllocationAuthorizationCommand
