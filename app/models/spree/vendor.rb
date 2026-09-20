@@ -24,6 +24,9 @@ module Spree
       has_one :image, as: :viewable, dependent: :destroy, class_name: 'Spree::VendorImage'
       has_many :commissions, class_name: 'Spree::OrderCommission'
       has_many :vendor_users
+      has_many :vendor_stores, class_name: 'Spree::VendorStore'
+      has_many :vendor_payment_accounts, class_name: 'Spree::VendorPaymentAccount'
+      has_many :vendor_command_records, class_name: 'Spree::VendorCommandRecord'
 
       SpreeMultiVendor::Config[:vendorized_models].uniq.compact.each do |model|
         has_many model.pluralize.to_sym

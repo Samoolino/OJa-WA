@@ -34,8 +34,23 @@ Spree::Core::Engine.routes.draw do
         post 'wallet_transfers', to: 'wallet_transfers#create'
       end
     end
+
     namespace :v1 do
       resources :vendors
+      post 'vendors/:vendor_id/management/command', to: 'vendor_management#command'
+      get 'vendors/:vendor_id/management', to: 'vendor_management#show'
+      post 'webhooks/:provider/payments', to: 'payment_webhooks#create'
+
+      namespace :plan_owners do
+        resources :plans, only: [:create, :show, :update] do
+          member do
+            post :allocation
+            post :policy
+            post :review
+            post :activate
+          end
+        end
+      end
     end
   end
 end
