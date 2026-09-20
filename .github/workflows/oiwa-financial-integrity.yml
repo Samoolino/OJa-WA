@@ -1,0 +1,44 @@
+name: OJa-WA integrity
+
+on:
+  push:
+    branches: [main, "feature/**", "institutional/**"]
+  pull_request:
+
+jobs:
+  rspec:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_DB: oja_wa_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd="pg_isready -U postgres -d oja_wa_test"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+    env:
+      RAILS_ENV: test
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/oja_wa_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.2"
+          bundler-cache: true
+      - name: Syntax check
+        run: |
+          ruby -c app/models/spree/plan_allocation.rb
+          ruby -c app/models/spree/allocation_ledger_entry.rb
+          ruby -c app/models/spree/funding_ingress.rb
+          ruby -c app/services/spree/financial/invariants.rb
+          ruby -c app/services/spree/funding/issue.rb
+          ruby -c app/services/spree/allocation/ledger_operation.rb
+      - name: Test application
+        run: bundle exec rake test_app
+      - name: Financial integrity specs
+        run: bundle exec rspec spec/services/spree/allocation_financial_integrity_spec.rb
