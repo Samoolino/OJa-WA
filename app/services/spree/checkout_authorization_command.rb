@@ -1,7 +1,7 @@
 module Spree
   module Checkout
     class AuthorizationCommand
-      Result = Struct.new(:authorized, :reason, :allocation, keyword_init: true)
+      Result = Struct.new(:authorized, :reason, :allocation, :geo_evidence, keyword_init: true)
 
       def self.call(allocation:, amount_minor:, currency:, vendor_store_id:, product_skus:, geo_context:, correlation_id:)
         new(allocation:, amount_minor:, currency:, vendor_store_id:, product_skus:, geo_context:, correlation_id:).call
@@ -25,7 +25,9 @@ module Spree
         return deny("insufficient_available_allocation") if @allocation.available_minor < @amount_minor
         return deny("vendor_store_not_allowed") unless vendor_store_allowed?
         return deny("product_policy_rejected") unless products_allowed?
-        return deny("geofence_rejected") unless geography_allowed?
+
+        geo = Spree::GeoPolicyEngine.evaluate(policy: @allocation.metadata.fetch("geo_policy", {}), geo_context: @geo_context)
+        return deny(geo.reason) unless geo.allowed
 
         Spree::AllocationLedgerCommand.call(
           allocation: @allocation,
@@ -34,14 +36,10 @@ module Spree
           operation_id: "allocation-reserve:#{@correlation_id}",
           idempotency_key: "allocation-reserve:#{@correlation_id}",
           correlation_id: @correlation_id,
-          metadata: {
-            vendor_store_id: @vendor_store_id,
-            product_skus: @product_skus,
-            geo_context: @geo_context
-          }
+          metadata: { vendor_store_id: @vendor_store_id, product_skus: @product_skus, geo_evidence: geo.evidence }
         )
 
-        Result.new(authorized: true, reason: "allocation_reserved", allocation: @allocation)
+        Result.new(authorized: true, reason: "allocation_reserved", allocation: @allocation, geo_evidence: geo.evidence)
       rescue ArgumentError => e
         deny(e.message)
       end
@@ -64,13 +62,6 @@ module Spree
         required = Array(policy["allowed_skus"] || policy[:allowed_skus]).map(&:to_s)
         return false if @product_skus.any? { |sku| blocked.include?(sku) }
         required.empty? || @product_skus.all? { |sku| required.include?(sku) }
-      end
-
-      def geography_allowed?
-        policy = @allocation.metadata.fetch("geo_policy", {})
-        return true if policy.blank?
-        allowed = Array(policy["allowed_geohashes"] || policy[:allowed_geohashes]).map(&:to_s)
-        allowed.empty? || allowed.include?(@geo_context["geohash"].to_s)
       end
     end
   end
