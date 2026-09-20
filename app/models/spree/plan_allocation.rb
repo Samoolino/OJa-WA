@@ -3,6 +3,7 @@ module Spree
     belongs_to :subscription_plan, class_name: 'Spree::SubscriptionPlan', optional: true
     belongs_to :user, class_name: Spree.user_class.name, optional: true
     belongs_to :vendor, class_name: 'Spree::Vendor', optional: true
+    belongs_to :vendor_store, class_name: 'Spree::VendorStore', optional: true
 
     has_many :allocation_ledger_entries, class_name: 'Spree::AllocationLedgerEntry',
              foreign_key: :plan_allocation_id, inverse_of: :plan_allocation, dependent: :restrict_with_exception
