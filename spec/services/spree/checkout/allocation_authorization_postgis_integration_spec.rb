@@ -36,7 +36,7 @@ RSpec.describe Spree::Checkout::AllocationAuthorizationCommand do
     )
   end
 
-  let(:vendor) { Spree::Vendor.insert!(name: "Geo Test Vendor", created_at: Time.current, updated_at: Time.current) }
+  let(:vendor) { Spree::Vendor.create!(name: "Geo Test Vendor") }
   let(:store) { Spree::VendorStore.create!(vendor_id: vendor, name: "Geo Test Store") }
 
   let(:context) do
