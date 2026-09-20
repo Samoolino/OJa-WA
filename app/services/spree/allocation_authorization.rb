@@ -81,6 +81,12 @@ module Spree
       return 'geography_mismatch' if policy['geography'].present? && policy['geography'].to_s != @context[:geography].to_s
       return 'fulfillment_mismatch' if policy['fulfillment'].present? && policy['fulfillment'].to_s != @context[:fulfillment].to_s
 
+      geo_policy = policy['geo_policy'] || allocation.metadata.to_h['geo_policy'] || {}
+      if geo_policy.present?
+        return 'geography_evidence_required' unless @context[:geo_authorized] == true
+        return 'geography_evidence_invalid' unless @context[:geo_evidence].present?
+      end
+
       nil
     end
   end
