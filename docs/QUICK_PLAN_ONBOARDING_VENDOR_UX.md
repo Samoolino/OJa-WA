@@ -1,1 +1,130 @@
-# OJa-WA Quick Plan Onboarding & Vendor Integration UX Contract\n\n## Product intent\n\nOJa-WA is a subscription-funded, allocation-aware multi-vendor marketplace for institutional Plan Owners. Plan creation should feel quick and guided without imposing an artificial five-minute deadline.\n\nThe core UX principle is progressive disclosure: collect only decisions required for the next valid state, expose advanced controls when relevant, and preserve drafts automatically.\n\n## Primary Plan Owner journey\n\n1. Create Plan — name, sponsor/owner identity, objective, optional logo/theme.\n2. Funding — amount, currency, one-time/recurring cadence, collection rail.\n3. Allocation — amount/rule, distribution mode, beneficiary access mode (QR/UUID/verified identity assertion), one active access per beneficiary per plan.\n4. Eligibility & Policy — purpose/category, vendor/store, product/category, geography, expiry, fulfillment requirements.\n5. Review — human-readable summary, allocation coverage, policy warnings, missing requirements, beneficiary preview.\n6. Activate — explicit confirmation, immutable plan version, audit/correlation identifier, active state only after required prerequisites pass.\n\n## UX rules\n\n- Save drafts automatically and allow resume from any completed section.\n- Show one primary action per step.\n- Keep advanced controls collapsed until relevant.\n- Make financial consequences explicit.\n- Use integer minor-unit accounting behind the UI.\n- Treat displayed balance as informational; authorization queries canonical OJa-WA accounting/policy.\n- Make validation actionable and non-destructive.\n- Activation is an explicit domain command.\n- Never expose NIN/BVN or other sensitive identifiers in QR codes, public UUIDs, URLs, or client authorization payloads.\n\n## Vendor Management\n\nCanonical hierarchy: Vendor Organization -> Store(s) -> Catalog/Product -> Policy Scope -> Orders -> Fulfillment.\n\nA vendor organization can own multiple stores. Each store can have its own geography, terminal/POS identity and operational status while remaining under one vendor organization.\n\n### Shopify / Nuvemshop\n- Import/synchronize vendor, store, catalog and order data through adapters.\n- Map external IDs to canonical OJa-WA IDs.\n- Preserve OJa-WA policy as the authorization source.\n- Do not let an external catalog override allocation eligibility.\n- Use authenticated events/webhooks plus reconciliation rather than trusting one-time snapshots.\n\n### POS\nPOS asks OJa-WA: Can allocation X authorize this exact basket at this exact store/terminal now?\nThe response includes an authorization/correlation identifier and permitted amount/lines. POS does not calculate authoritative allocation availability.\n\n### Glovo / other 3PL\n- Receive fulfillment-eligible order information after authorization.\n- Return delivery state through authenticated events.\n- Delivery evidence may gate vendor transfer/settlement.\n- Fulfillment adapters cannot directly mutate allocation ledger balances.\n\n## Payment/provider boundaries\n\n### Stripe\n- Plan Owner recurring collection: Billing.\n- Marketplace/customer payment: PaymentIntent/Checkout as appropriate.\n- Vendor settlement: Connect architecture selected by the payment orchestration contract.\n- Webhooks enter through an authenticated gateway, are deduplicated, persisted as evidence, then projected into domain commands.\n\n### GoCardless\n- Optional bank/direct-debit collection adapter where supported.\n- Collection evidence maps to canonical funding/payment states.\n- It does not own allocation authorization.\n\n## Presentation surfaces\n\n### OJa-WA web app\nCanonical management and authorization UX.\n\n### Wix\nOptional branded presentation/experience surface. Never duplicate financial policy or ledger logic.\n\n### Shopify embedded experience\nWhen used as an embedded admin application, follow Shopify App Bridge and Polaris conventions. Keep merchant setup contextual to the store while linking back to canonical OJa-WA vendor/plan records.\n\n## Agent assistance\n\nAgentic helpers may explain setup, suggest defaults, identify missing configuration, summarize vendor/catalog policy, and create operational tasks.\n\nAgents must not silently activate a plan, move money, alter immutable ledger history, bypass KYC/policy, authorize an allocation, or release a vendor transfer. Consequential commands use the same canonical authorization and idempotency boundaries as human actions.\n\n## Design-system direction\n\n- Calm institutional SaaS presentation.\n- Clear progress and completion states.\n- High readability and accessible keyboard/screen-reader flows.\n- Responsive desktop/tablet/mobile layouts.\n- Restrained cards, borders and modal interruptions.\n- Consistent money/currency formatting.\n- Explicit success, warning, blocking and reconciliation states.\n\n## Build gate\n\nUI implementation should follow a selected Product Design visual direction. Until that direction is selected, backend/domain contracts may proceed, but the visual implementation should not be treated as final.
+# OJa-WA Quick Plan Onboarding & Vendor Management UX Contract
+
+## Product intent
+
+OJa-WA is a subscription-funded, allocation-aware multi-vendor marketplace for institutional Plan Owners. Plan creation should be quick and guided without imposing an artificial five-minute deadline.
+
+The experience is progressive: collect only the decisions required for the next valid state, save drafts automatically, and reveal advanced controls when they become relevant.
+
+## Part 1 — Quick Plan Onboarding
+
+### Primary flow
+
+1. **Create** — plan name, objective, owner identity, optional branding.
+2. **Funding** — target amount, currency, one-time/recurring cadence, collection rail.
+3. **Allocation** — amount/rule, distribution mode, beneficiary access mode, one active access per beneficiary per plan.
+4. **Policy** — purpose/category, vendor/store, product/category, geography, expiry, fulfillment.
+5. **Review** — coverage, warnings, missing requirements, beneficiary preview.
+6. **Activate** — explicit confirmation, immutable version, audit/correlation identity.
+
+### Experience rules
+
+- One primary action per step.
+- Autosave drafts and resume from any completed step.
+- Show completion and blocking requirements continuously.
+- Explain financial consequences before activation.
+- Use integer minor units behind the UI.
+- Displayed balances are informational; authorization remains server-side.
+- Never expose NIN/BVN or sensitive KYC values in QR, UUID, URL or client authorization payloads.
+- Activation is a domain command, not a UI-only state change.
+
+### Progressive advanced controls
+
+Advanced settings are collapsed by default and become visible when selected objectives require them:
+
+- KYC assertion requirements
+- per-beneficiary limits
+- multiple allocation buckets
+- vendor/store restrictions
+- product/category restrictions
+- nested geography
+- expiry
+- POS rules
+- delivery/3PL requirements
+- settlement conditions
+- institutional reporting
+
+## Part 2 — Vendor Management
+
+Canonical hierarchy:
+
+**Vendor Organization → Connected Payment Account → Store(s) → Catalog/Product → POS/Commerce → Fulfillment → Settlement**
+
+Vendor onboarding:
+
+**Apply → Business Profile → KYB/KYC → Payment Account → Store → Catalog Connection → Policy Eligibility → Sandbox Transaction → Active**
+
+A vendor organization may operate multiple stores. Store-level geography, terminal/POS identity and operational status remain distinct while rolling up to the organization.
+
+Vendor workspace should expose:
+
+- onboarding status
+- connected payment account
+- stores and operational status
+- Shopify/Nuvemshop connections
+- catalog synchronization
+- policy-eligible products
+- pending orders
+- payment/capture state
+- held and settlement-eligible funds
+- fulfillment state
+- refunds/disputes
+- transfer/payout history
+- reconciliation exceptions
+
+## Part 3 — Commerce & Checkout
+
+Shopify and Nuvemshop are adapters for catalog, store and order projections. They do not override OJa-WA allocation policy.
+
+POS asks:
+
+> Can allocation X authorize this exact basket at this exact store/terminal now?
+
+OJa-WA returns the authorization/correlation identity and permitted lines/amount. POS does not calculate authoritative allocation availability.
+
+Cross-vendor carts may be supported when each line independently passes policy and the order split can be recorded atomically.
+
+## Part 4 — Fulfillment & Settlement UX
+
+The operational state is visible as:
+
+**Captured → Order Valid → Fulfillment Pending → Fulfillment Confirmed → Settlement Eligible → Transfer Requested → Transfer Confirmed → Settled**
+
+Glovo or another 3PL receives fulfillment-eligible information and returns authenticated delivery events. A fulfillment adapter cannot directly mutate allocation balances.
+
+Refunds, reversals and disputes appear as compensating financial events rather than edits to historical ledger entries.
+
+## Part 5 — Trust, Assistance & Scale
+
+Agent assistance can:
+
+- explain setup
+- suggest non-binding defaults
+- identify missing configuration
+- summarize vendor/catalog policy
+- prepare operational tasks
+
+Agents cannot silently activate plans, move funds, bypass KYC/policy, authorize allocations, alter immutable ledger history or release vendor transfers.
+
+Presentation surfaces:
+
+- OJa-WA web app: canonical management and authorization UX.
+- Wix: optional branded presentation surface.
+- Shopify embedded experience: merchant-context administration linked to canonical OJa-WA records.
+- Figma/Product Design: visual specification and UX validation before final UI implementation.
+
+## Accessibility and responsive behavior
+
+- WCAG 2.1 AA target.
+- Keyboard-complete onboarding.
+- Semantic form labels and validation.
+- Screen-reader friendly progress and error states.
+- Responsive desktop/tablet/mobile layouts.
+- Clear success, warning, blocking and reconciliation states.
+- Avoid modal-heavy flows; prefer progressive sections and resumable drafts.
+
+## Implementation boundary
+
+Visual implementation should follow the selected Product Design direction. Backend/domain/API work can proceed independently, but no visual implementation is considered final until the design direction is reviewed.
+
+OJa-WA remains the product source of truth. OJA-T remains auxiliary DevOps only.
