@@ -3,10 +3,11 @@ module Spree
     class EvidenceIngestion
       prepend Spree::ServiceModule::Base
       require 'digest'
+      require 'json'
 
       def call(plan_allocation:, provider:, provider_event_id:, amount_cents:, currency:,
                payload:, idempotency_key:, correlation_id:)
-        fingerprint = Digest::SHA256.hexdigest(payload.to_json)
+        fingerprint = Digest::SHA256.hexdigest(JSON.generate(canonical(payload || {})))
         existing = Spree::PaymentEvidenceEvent.find_by(provider: provider, provider_event_id: provider_event_id)
         if existing
           return failure(errors: ['payment evidence mismatch']) unless existing.payload_fingerprint == fingerprint
@@ -26,6 +27,10 @@ module Spree
           correlation_id: correlation_id, occurred_at: Time.current
         )
         success(evidence: evidence, replay: false)
+      rescue ActiveRecord::RecordNotUnique
+        existing = Spree::PaymentEvidenceEvent.find_by(provider: provider, provider_event_id: provider_event_id)
+        return failure(errors: ['payment evidence mismatch']) unless existing && existing.payload_fingerprint == fingerprint
+        success(evidence: existing, replay: true)
       rescue ActiveRecord::RecordInvalid => e
         failure(errors: e.record.errors.full_messages)
       end
@@ -43,6 +48,19 @@ module Spree
       def extract_currency(payload)
         value = payload['currency'] || payload[:currency]
         value.to_s.upcase.presence
+      end
+
+      def canonical(value)
+        case value
+        when Hash
+          value.keys.map(&:to_s).sort.each_with_object({}) do |key, h|
+            h[key] = canonical(value[key] || value[key.to_sym])
+          end
+        when Array
+          value.map { |item| canonical(item) }
+        else
+          value
+        end
       end
     end
   end
