@@ -1,3 +1,6 @@
+require "digest"
+require "json"
+
 module Spree
   class PaymentEvidenceIngestion
     def self.call(provider:, provider_event_id:, event_type:, status:, correlation_id:, payload:, payment_reference: nil,
@@ -14,13 +17,33 @@ module Spree
 
     def call
       validate!
+      fingerprint = self.class.fingerprint(@attrs[:payload])
+
       existing = Spree::PaymentEvidenceEvent.find_by(
         provider: @attrs[:provider],
         provider_event_id: @attrs[:provider_event_id]
       )
-      return existing if existing
+      if existing
+        raise ArgumentError, "provider event payload mismatch" if existing.payload_fingerprint.present? && existing.payload_fingerprint != fingerprint
+        return existing
+      end
 
-      Spree::PaymentEvidenceEvent.create!(@attrs)
+      Spree::PaymentEvidenceEvent.create!(@attrs.merge(payload_fingerprint: fingerprint))
+    end
+
+    def self.fingerprint(payload)
+      Digest::SHA256.hexdigest(JSON.generate(canonicalize(payload)))
+    end
+
+    def self.canonicalize(value)
+      case value
+      when Hash
+        value.keys.map(&:to_s).sort.to_h { |key| [key, canonicalize(value[key] || value[key.to_sym])] }
+      when Array
+        value.map { |item| canonicalize(item) }
+      else
+        value
+      end
     end
 
     private
