@@ -28,7 +28,7 @@ module Spree
             operation_id: "allocation-reservation:#{@idempotency_key}",
             idempotency_key: @idempotency_key,
             correlation_id: @correlation_id,
-            context: @context.merge(geo_evidence: geo_result.evidence)
+            context: @context.merge(geo_authorized: geo_result.allowed, geo_evidence: geo_result.evidence)
           )
 
           Result.new(
