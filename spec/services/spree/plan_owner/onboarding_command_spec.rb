@@ -15,14 +15,15 @@ RSpec.describe Spree::PlanOwner::OnboardingCommand do
     ).call
   end
 
-  it 'creates a draft and replays the same idempotent command' do
+  it 'creates a draft and replays the same idempotent command without duplicating the plan' do
     key = SecureRandom.uuid
     attributes = {
       name: 'Community Food Plan',
       objective: 'Restricted institutional food support',
       currency: 'NGN',
       plan_type: 'recurring',
-      funding_target_minor: 1_000_000
+      funding_target_minor: 1_000_000,
+      price_minor: 25_000
     }
 
     first = run('create', attributes: attributes, key: key)
@@ -32,6 +33,7 @@ RSpec.describe Spree::PlanOwner::OnboardingCommand do
     expect(second.replayed?).to be(true)
     expect(second.payload[:plan_id]).to eq(first.payload[:plan_id])
     expect(Spree::SubscriptionPlan.where(plan_owner: plan_owner).count).to eq(1)
+    expect(Spree::SubscriptionPlan.find(first.payload[:plan_id]).funding_target_minor).to eq(1_000_000)
   end
 
   it 'does not activate before allocation and policy are configured' do
