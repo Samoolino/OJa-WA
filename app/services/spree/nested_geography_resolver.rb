@@ -48,13 +48,13 @@ module Spree
     def hierarchy_consistent?(matches)
       return false if matches.empty?
 
-      LEVELS.each_cons(2).all? do |parent_level, child_level|
-        parents = matches[parent_level] || []
-        children = matches[child_level] || []
-        next true if children.empty? || parents.empty?
+      present_levels = LEVELS.select { |level| matches[level].present? }
+      return false unless present_levels.all? { |level| matches[level].one? }
 
-        parent_codes = parents.map { |entry| entry["code"] }
-        children.all? { |entry| parent_codes.include?(entry["parent_code"]) }
+      present_levels.each_cons(2).all? do |parent_level, child_level|
+        parent = matches[parent_level].first
+        children = matches[child_level]
+        children.all? { |entry| entry["parent_code"].to_s == parent["code"].to_s }
       end
     end
   end
