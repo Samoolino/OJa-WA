@@ -37,6 +37,9 @@ Spree::Core::Engine.routes.draw do
 
     namespace :v1 do
       resources :vendors
+      post 'vendors/:vendor_id/management/command', to: 'vendor_management#command'
+      get 'vendors/:vendor_id/management', to: 'vendor_management#show'
+
       namespace :plan_owners do
         resources :plans, only: [:create, :show, :update] do
           member do
