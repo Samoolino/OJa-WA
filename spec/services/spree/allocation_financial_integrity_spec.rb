@@ -91,4 +91,36 @@ RSpec.describe 'Spree allocation financial integrity' do
     expect(reverse).to be_success
     expect(allocation.reload.available_cents).to eq(10_000)
   end
+
+  it 'atomically reserves against the available balance and replays idempotently' do
+    allocation.update!(funded_cents: 5_000, currency: 'USD')
+    user = instance_double('User', id: 42)
+    allocation.update!(user_id: 42)
+
+    first = Spree::Allocation::Reserve.new.call(
+      plan_allocation: allocation,
+      user: user,
+      amount_cents: 3_000,
+      currency: 'USD',
+      idempotency_key: 'reserve-001',
+      correlation_id: 'corr-005',
+      source_reference: 'order-003'
+    )
+    second = Spree::Allocation::Reserve.new.call(
+      plan_allocation: allocation,
+      user: user,
+      amount_cents: 3_000,
+      currency: 'USD',
+      idempotency_key: 'reserve-001',
+      correlation_id: 'corr-005',
+      source_reference: 'order-003'
+    )
+
+    expect(first).to be_success
+    expect(second).to be_success
+    expect(second.replay).to eq(true)
+    expect(allocation.reload.reserved_cents).to eq(3_000)
+    expect(allocation.ledger_entries.where(entry_type: 'reserve').count).to eq(1)
+  end
+
 end
