@@ -7,6 +7,8 @@ module Spree
                payment_payload:, reserve_idempotency_key:, capture_idempotency_key:, correlation_id:)
         ActiveRecord::Base.transaction do
           allocation = Spree::PlanAllocation.lock.find(plan_allocation.id)
+          return failure(errors: ['beneficiary mismatch']) unless allocation.user_id.nil? || allocation.user_id == user.id
+          return failure(errors: ['currency mismatch']) unless allocation.currency == currency
           reserve = Spree::AllocationLedgerEntry.find_by(idempotency_key: reserve_idempotency_key)
           return failure(errors: ['reservation not found']) unless reserve&.entry_type == 'reserve'
 
