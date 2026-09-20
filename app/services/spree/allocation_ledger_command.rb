@@ -3,6 +3,7 @@ module Spree
     Result = Struct.new(:applied, :reason, :allocation, :ledger_entry, keyword_init: true)
 
     ENTRY_DELTAS = {
+      "fund" => { funded_minor: 1 },
       "consume" => { reserved_minor: -1, consumed_minor: 1 },
       "release" => { reserved_minor: -1, released_minor: 1 },
       "reverse" => { consumed_minor: -1, reversed_minor: 1 }
@@ -33,10 +34,11 @@ module Spree
         deltas = ENTRY_DELTAS.fetch(@entry_type)
         validate_balance!(allocation, deltas)
 
-        allocation.reserved_minor += deltas[:reserved_minor] * @amount_minor
-        allocation.consumed_minor += deltas[:consumed_minor] * @amount_minor
-        allocation.released_minor += deltas[:released_minor] * @amount_minor
-        allocation.reversed_minor += deltas[:reversed_minor] * @amount_minor
+        allocation.funded_minor += deltas[:funded_minor] * @amount_minor if deltas[:funded_minor]
+        allocation.reserved_minor += deltas[:reserved_minor] * @amount_minor if deltas[:reserved_minor]
+        allocation.consumed_minor += deltas[:consumed_minor] * @amount_minor if deltas[:consumed_minor]
+        allocation.released_minor += deltas[:released_minor] * @amount_minor if deltas[:released_minor]
+        allocation.reversed_minor += deltas[:reversed_minor] * @amount_minor if deltas[:reversed_minor]
         allocation.save!
 
         entry = allocation.allocation_ledger_entries.create!(
