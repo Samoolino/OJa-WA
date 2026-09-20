@@ -6,21 +6,28 @@ module Spree
 
         def create
           raw_payload = request.raw_post
-          payload = JSON.parse(raw_payload)
           provider = params[:provider].to_s
+          verification = Spree::PaymentProviderAdapter.verify_webhook(
+            provider: provider,
+            headers: request.headers,
+            raw_payload: raw_payload
+          )
+          return render json: { accepted: false, error: verification.reason }, status: :unauthorized unless verification.verified
 
+          payload = verification.payload.respond_to?(:to_hash) ? verification.payload.to_hash : JSON.parse(raw_payload)
+          object = payload.dig("data", "object") || {}
           event = Spree::PaymentEvidenceIngestion.call(
-            provider:,
+            provider: provider,
             provider_event_id: payload.fetch("id"),
             event_type: payload.fetch("type"),
-            status: payload.dig("data", "object", "status") || payload["status"] || "RECEIVED",
+            status: object["status"] || "RECEIVED",
             correlation_id: request.headers["X-Correlation-Id"].presence || request.request_id,
-            payload:,
-            payment_reference: payload.dig("data", "object", "id"),
-            order_reference: payload.dig("data", "object", "metadata", "order_reference"),
-            currency: payload.dig("data", "object", "currency")&.upcase,
-            amount_minor: payload.dig("data", "object", "amount"),
-            occurred_at: Time.at(payload.fetch("created")) rescue nil
+            payload: payload,
+            payment_reference: object["id"],
+            order_reference: object.dig("metadata", "order_reference"),
+            currency: object["currency"]&.upcase,
+            amount_minor: object["amount"],
+            occurred_at: Time.at(payload.fetch("created"))
           )
 
           render json: { accepted: true, event_id: event.id }, status: :accepted
