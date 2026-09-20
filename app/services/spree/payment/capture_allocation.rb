@@ -19,10 +19,11 @@ module Spree
           )
           return evidence_result unless evidence_result.success?
 
+          evidence = evidence_result.evidence
           reconciliation = Spree::Reconciliation::Compare.new.call(
             plan_allocation: allocation, expected_amount_cents: amount_cents,
-            expected_currency: currency, observed_amount_cents: amount_cents,
-            observed_currency: currency, evidence_id: evidence_result.evidence.id,
+            expected_currency: currency, observed_amount_cents: evidence.amount_cents,
+            observed_currency: evidence.currency, evidence_id: evidence.id,
             idempotency_key: "reconcile:#{capture_idempotency_key}",
             correlation_id: correlation_id
           )
@@ -36,7 +37,7 @@ module Spree
           )
           return result unless result.success?
 
-          success(allocation: result.allocation, evidence: evidence_result.evidence,
+          success(allocation: result.allocation, evidence: evidence,
                   reconciliation: reconciliation.record, ledger_entry: result.ledger_entry)
         end
       end
