@@ -243,3 +243,18 @@ Spree Multi-Vendor extension is free software, and may be redistributed under th
 [LICENCE](LICENSE) file.
 
 [LICENSE]: https://github.com/spree-contrib/spree_multi_vendor/blob/main/LICENSE
+
+
+## Current dual-repository implementation status — 2026-09-20
+
+OJa-WA and OJA-T are **competitive/parallel implementations of the same OJa-WA product and transaction functionality**. They are not intentionally divided into “product” versus “execution” ownership. Each repository is expected to converge on the same functional behavior and production-gate evidence, even where the internal implementation differs.
+
+See `docs/DUAL_REPO_PARITY_CONTRACT.md` for the shared acceptance contract.
+
+The historical scaffold/reintegration sections above are retained as repository history. They must not be used as the current implementation-state definition.
+
+Current re-entry rule:
+
+`re-baseline -> identify parity gap -> implement -> test -> CI evidence -> advance production gate`
+
+No live payment movement, custody, KYC/AML processing, or production settlement is inferred from source-code presence alone.
