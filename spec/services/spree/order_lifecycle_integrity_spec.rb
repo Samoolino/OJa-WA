@@ -64,10 +64,10 @@ RSpec.describe 'Spree order lifecycle integrity' do
       reserved_cents: 3_000
     )
 
-    reserve = Spree::Allocation::LedgerOperation.new.call(
-      plan_allocation: allocation, amount_cents: 3_000, currency: 'USD',
-      operation: 'reserve', idempotency_key: 'reserve-life-1',
-      correlation_id: 'corr-life-3', source_type: 'order', source_reference: 'order-life-1'
+    reserve = Spree::Allocation::Reserve.new.call(
+      plan_allocation: allocation, user: instance_double('User', id: 1),
+      amount_cents: 3_000, currency: 'USD', idempotency_key: 'reserve-life-1',
+      correlation_id: 'corr-life-3', source_reference: 'order-life-1'
     )
     expect(reserve).to be_success
 
