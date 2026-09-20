@@ -67,10 +67,10 @@ module Spree
     end
 
     def validate_balance!(allocation, deltas)
-      if deltas[:reserved_minor].negative? && allocation.reserved_minor < @amount_minor
+      if deltas[:reserved_minor]&.negative? && allocation.reserved_minor < @amount_minor
         raise ArgumentError, "reserved balance is insufficient"
       end
-      if deltas[:consumed_minor].negative? && allocation.consumed_minor < @amount_minor
+      if deltas[:consumed_minor]&.negative? && allocation.consumed_minor < @amount_minor
         raise ArgumentError, "consumed balance is insufficient"
       end
     end
