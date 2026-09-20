@@ -79,7 +79,8 @@ module Spree
           description: @attributes[:objective],
           currency: @attributes[:currency],
           plan_type: @attributes[:plan_type] || :one_time,
-          price_cents: @attributes[:funding_target_minor] || 0,
+          price_cents: @attributes[:price_minor] || 0,
+          funding_target_minor: @attributes[:funding_target_minor] || 0,
           eligibility_rules: @attributes[:initial_policy] || {}
         )
         plan.save!
@@ -99,7 +100,8 @@ module Spree
             description: @attributes[:objective] || @plan.description,
             currency: @attributes[:currency] || @plan.currency,
             plan_type: @attributes[:plan_type] || @plan.plan_type,
-            price_cents: @attributes[:funding_target_minor] || @plan.price_cents,
+            price_cents: @attributes[:price_minor] || @plan.price_cents,
+            funding_target_minor: @attributes.key?(:funding_target_minor) ? @attributes[:funding_target_minor] : @plan.funding_target_minor,
             eligibility_rules: merged_rules(@plan.eligibility_rules, @attributes[:configuration])
           )
         end
@@ -170,7 +172,7 @@ module Spree
         missing << 'name' if plan.name.blank?
         missing << 'objective' if plan.description.blank?
         missing << 'currency' if plan.currency.blank?
-        missing << 'funding_target_minor' if plan.price_cents.to_i <= 0
+        missing << 'funding_target_minor' if plan.funding_target_minor.to_i <= 0
         missing << 'allocation' if allocation.blank?
         missing << 'beneficiary_access' if allocation['access_method'].blank?
         missing << 'policy' if policy.blank?
