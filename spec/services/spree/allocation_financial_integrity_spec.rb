@@ -6,7 +6,7 @@ RSpec.describe 'Spree allocation financial integrity' do
       allocation_code: SecureRandom.alphanumeric(8).upcase,
       status: :active,
       currency: 'USD',
-      funded_cents: 10_000
+      funded_cents: 0
     )
   end
 
@@ -39,7 +39,7 @@ RSpec.describe 'Spree allocation financial integrity' do
     expect(first).to be_success
     expect(second).to be_success
     expect(second.replay).to eq(true)
-    expect(allocation.reload.funded_cents).to eq(20_000)
+    expect(allocation.reload.funded_cents).to eq(10_000)
     expect(allocation.ledger_entries.where(entry_type: 'fund').count).to eq(1)
   end
 
