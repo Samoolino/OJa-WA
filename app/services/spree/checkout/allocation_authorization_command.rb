@@ -17,26 +17,29 @@ module Spree
 
       def call
         validate!
-        geo_result = evaluate_geography
-        return rejected(geo_result.reason) unless geo_result.allowed
+        ActiveRecord::Base.transaction(requires_new: true) do
+          geo_result = evaluate_geography
+          record_geo_audit!(geo_result)
+          return rejected(geo_result.reason) unless geo_result.allowed
 
-        authorization = Spree::AllocationAuthorization.reserve!(
-          allocation: @allocation,
-          amount_minor: @amount_minor,
-          operation_id: "allocation-reservation:#{@idempotency_key}",
-          idempotency_key: @idempotency_key,
-          correlation_id: @correlation_id,
-          context: @context.merge(geo_evidence: geo_result.evidence)
-        )
+          authorization = Spree::AllocationAuthorization.reserve!(
+            allocation: @allocation,
+            amount_minor: @amount_minor,
+            operation_id: "allocation-reservation:#{@idempotency_key}",
+            idempotency_key: @idempotency_key,
+            correlation_id: @correlation_id,
+            context: @context.merge(geo_evidence: geo_result.evidence)
+          )
 
-        Result.new(
-          allowed: authorization.allowed,
-          reason: authorization.reason,
-          allocation: authorization.allocation,
-          ledger_entry: authorization.ledger_entry,
-          amount_minor: @amount_minor,
-          currency: authorization.allocation.currency
-        )
+          Result.new(
+            allowed: authorization.allowed,
+            reason: authorization.reason,
+            allocation: authorization.allocation,
+            ledger_entry: authorization.ledger_entry,
+            amount_minor: @amount_minor,
+            currency: authorization.allocation.currency
+          )
+        end
       end
 
       private
@@ -84,6 +87,30 @@ module Spree
           reason: result.reason,
           evidence: result.evidence.merge("hierarchy" => hierarchy.matches)
         )
+      end
+
+      def record_geo_audit!(result)
+        latitude = @context[:latitude] || @context[:geo_context].to_h[:latitude]
+        longitude = @context[:longitude] || @context[:geo_context].to_h[:longitude]
+        return if latitude.blank? || longitude.blank?
+
+        hierarchy = result.evidence["hierarchy"] || {}
+        status = result.allowed ? "RESOLVED" : (result.reason == "nested_geography_inconsistent" ? "INCONSISTENT" : "REJECTED")
+        Spree::GeoAuditCommand.record!(
+          allocation: @allocation,
+          store_id: @context[:store_id],
+          operation_id: "geo-audit:#{@idempotency_key}",
+          correlation_id: @correlation_id,
+          latitude:,
+          longitude:,
+          coordinate_source: @context[:coordinate_source] || @context.dig(:geo_context, :coordinate_source),
+          resolution_status: status,
+          resolved_hierarchy: hierarchy,
+          policy_result: { "allowed" => result.allowed, "reason" => result.reason, "evidence" => result.evidence },
+          effective_at: Time.current
+        )
+      rescue ActiveRecord::RecordNotUnique
+        # Safe idempotent replay: the original audit record remains authoritative.
       end
 
       def rejected(reason)
