@@ -62,3 +62,27 @@ Remains an auxiliary execution repository. Its code may be maintained through De
 ## Production safety
 
 No live payment, settlement, ERP, POS or 3PL credentials are implied. Provider integrations remain sandbox/certification gates until runtime evidence is recorded.
+
+
+## Current implementation checkpoint — 2026-09-20
+
+Phase A has begun on the institutional feature branch. The first implementation slice establishes integer-unit allocation accounting, immutable allocation ledger evidence, atomic reservation/idempotency boundaries, and policy checks. The next required slice is the Plan Owner five-minute management flow and canonical API command/query contracts.
+
+### Design and implementation boundary
+
+- OJa-WA remains the only active feature-development surface.
+- OJA-T remains auxiliary DevOps/CI/security/dependency maintenance only.
+- Wix may be used as a presentation/experience layer where appropriate, but OJa-WA domain and financial policy remain authoritative.
+- Stripe remains the primary payment-provider adapter target.
+- On-chain execution is not a source of authorization for fiat allocation balances; any future crypto/on-chain rail must pass the same policy, idempotency, accounting and diligence gates.
+
+### Required next acceptance evidence
+
+1. Plan Owner create/update/activate flow test.
+2. One-access-per-beneficiary-per-plan constraint test.
+3. Allocation reservation/consume/release/reverse concurrency tests.
+4. Canonical payment command idempotency tests.
+5. Authenticated Stripe webhook replay/out-of-order tests.
+6. Vendor transfer eligibility and delivery-gated release tests.
+7. Reconciliation exception fixtures.
+8. Sandbox provider certification evidence.
