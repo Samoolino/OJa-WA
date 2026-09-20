@@ -78,7 +78,8 @@ module Spree
               objective: plan.description,
               currency: plan.currency,
               plan_type: plan.plan_type,
-              funding_target_minor: plan.price_cents,
+              funding_target_minor: plan.funding_target_minor,
+              price_minor: plan.price_cents,
               status: plan.status,
               version: plan.lock_version,
               onboarding: Spree::PlanOwner::OnboardingCommand.new(
