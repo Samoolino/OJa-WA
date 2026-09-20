@@ -1,0 +1,37 @@
+name: OJa-WA CI
+
+on:
+  push:
+    branches: ["feature/institutional-plan-allocation-policy-2026-09-20"]
+  pull_request:
+    branches: ["feature/institutional-plan-allocation-policy-2026-09-20"]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_DB: ojawa_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres -d ojawa_test"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+    env:
+      RAILS_ENV: test
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ojawa_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+      - name: Prepare database
+        run: bundle exec rails db:test:prepare
+      - name: Run specs
+        run: bundle exec rspec
