@@ -99,7 +99,7 @@ module Spree
         Spree::GeoAuditCommand.record!(
           allocation: @allocation,
           store_id: @context[:store_id],
-          operation_id: "geo-audit:#{@idempotency_key}",
+          operation_id: geo_audit_operation_id,
           correlation_id: @correlation_id,
           latitude:,
           longitude:,
@@ -111,6 +111,10 @@ module Spree
         )
       rescue ActiveRecord::RecordNotUnique
         # Safe idempotent replay: the original audit record remains authoritative.
+      end
+
+      def geo_audit_operation_id
+        "geo-audit:allocation:#{@allocation.id}:#{@idempotency_key}"
       end
 
       def rejected(reason)
