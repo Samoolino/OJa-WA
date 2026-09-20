@@ -34,8 +34,19 @@ Spree::Core::Engine.routes.draw do
         post 'wallet_transfers', to: 'wallet_transfers#create'
       end
     end
+
     namespace :v1 do
       resources :vendors
+      namespace :plan_owners do
+        resources :plans, only: [:create, :show, :update] do
+          member do
+            post :allocation
+            post :policy
+            post :review
+            post :activate
+          end
+        end
+      end
     end
   end
 end
