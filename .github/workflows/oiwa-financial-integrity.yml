@@ -38,6 +38,7 @@ jobs:
           ruby -c app/services/spree/financial/invariants.rb
           ruby -c app/services/spree/funding/issue.rb
           ruby -c app/services/spree/allocation/ledger_operation.rb
+          ruby -c app/services/spree/allocation/reserve.rb
       - name: Test application
         run: bundle exec rake test_app
       - name: Financial integrity specs
