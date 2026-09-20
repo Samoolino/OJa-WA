@@ -36,11 +36,14 @@ RSpec.describe Spree::Checkout::AllocationAuthorizationCommand do
     )
   end
 
+  let(:vendor) { Spree::Vendor.insert!(name: "Geo Test Vendor", created_at: Time.current, updated_at: Time.current) }
+  let(:store) { Spree::VendorStore.create!(vendor_id: vendor, name: "Geo Test Store") }
+
   let(:context) do
     {
       user_id: "beneficiary-1",
-      vendor_id: "vendor-1",
-      store_id: "store-1",
+      vendor_id: vendor,
+      store_id: store.id,
       product_id: "product-1",
       latitude: 0,
       longitude: 0,
@@ -50,6 +53,8 @@ RSpec.describe Spree::Checkout::AllocationAuthorizationCommand do
   end
 
   before do
+    vendor
+    store
     test_boundary(code: "NG-TEST", level: "country")
     test_boundary(code: "NG-STATE", level: "state", parent_code: "NG-TEST")
     test_boundary(code: "LGA-TEST", level: "lga", parent_code: "NG-STATE")
