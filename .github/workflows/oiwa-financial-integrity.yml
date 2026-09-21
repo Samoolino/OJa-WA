@@ -4,6 +4,7 @@ on:
   push:
     branches: [main, "feature/**", "institutional/**"]
   pull_request:
+  workflow_dispatch:
 
 jobs:
   rspec:
@@ -37,6 +38,15 @@ jobs:
           bundle config set --local path vendor/bundle
           bundle check || bundle install --jobs 4 --retry 3
           bundle check
+      - name: Verify Spree release family
+        run: |
+          bundle exec ruby -rbundler -e '
+            lock = Bundler::LockfileParser.new(File.read("Gemfile.lock"))
+            specs = lock.specs_by_name.transform_values { |specs| specs.map(&:version).map(&:to_s).uniq }
+            abort("spree core family mismatch: #{specs["spree"].inspect}") unless specs["spree"]&.all? { |v| v.start_with?("4.7.") }
+            abort("spree backend family mismatch: #{specs["spree_backend"].inspect}") unless specs["spree_backend"]&.all? { |v| v.start_with?("4.7.") }
+            abort("spree emails family mismatch: #{specs["spree_emails"].inspect}") unless specs["spree_emails"]&.all? { |v| v.start_with?("4.7.") }
+          '
       - name: Syntax check
         run: |
           ruby -c app/models/spree/plan_allocation.rb
@@ -53,3 +63,4 @@ jobs:
           bundle exec rspec spec/services/spree/allocation_financial_integrity_spec.rb
           bundle exec rspec spec/services/spree/payment_capture_spec.rb
           bundle exec rspec spec/services/spree/order_lifecycle_integrity_spec.rb
+
