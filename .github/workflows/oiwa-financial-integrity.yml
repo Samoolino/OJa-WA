@@ -46,6 +46,8 @@ jobs:
             abort("spree core family mismatch: #{specs["spree"].inspect}") unless specs["spree"]&.all? { |v| v.start_with?("4.7.") }
             abort("spree backend family mismatch: #{specs["spree_backend"].inspect}") unless specs["spree_backend"]&.all? { |v| v.start_with?("4.7.") }
             abort("spree emails family mismatch: #{specs["spree_emails"].inspect}") unless specs["spree_emails"]&.all? { |v| v.start_with?("4.7.") }
+            abort("spree frontend family mismatch: #{specs["spree_frontend"].inspect}") unless specs["spree_frontend"]&.all? { |v| v.start_with?("4.7.") }
+            abort("spree auth-devise family mismatch: #{specs["spree_auth_devise"].inspect}") unless specs["spree_auth_devise"]&.all? { |v| v.start_with?("4.6.") }
           '
       - name: Syntax check
         run: |
