@@ -1,4 +1,7 @@
 require 'spree_core'
+# Spree Backend 4.7 expects the core runtime preference base to be loaded
+# before its backend runtime configuration is evaluated.
+require 'spree/core/preferences/runtime_configuration'
 require 'spree_backend'
 require 'spree_emails'
 require 'spree_multi_vendor/engine'
