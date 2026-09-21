@@ -43,7 +43,7 @@ jobs:
         run: |
           bundle exec ruby -rbundler -e '
             lock = Bundler::LockfileParser.new(File.read("Gemfile.lock"))
-            specs = lock.specs_by_name.transform_values { |items| items.map(&:version).map(&:to_s).uniq }
+            specs = lock.specs.group_by(&:name).transform_values { |items| items.map { |item| item.version.to_s }.uniq }
             checks = {
               "spree" => /^4\.7\./,
               "spree_backend" => /^4\.7\./,
