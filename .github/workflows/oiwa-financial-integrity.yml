@@ -59,6 +59,17 @@ jobs:
           ruby -c app/services/spree/funding/issue.rb
           ruby -c app/services/spree/allocation/ledger_operation.rb
           ruby -c app/services/spree/allocation/reserve.rb
+          ruby -c app/services/spree/payment/evidence_ingestion.rb
+          ruby -c app/services/spree/reconciliation/compare.rb
+          ruby -c app/services/spree/payment/capture_allocation.rb
+          ruby -c app/services/spree/payment/capture_order_split.rb
+          ruby -c app/services/spree/fulfillment/create.rb
+          ruby -c app/services/spree/fulfillment/transition.rb
+          ruby -c app/services/spree/settlement/build.rb
+          ruby -c app/services/spree/settlement/eligibility.rb
+          ruby -c app/services/spree/settlement/request_transfer.rb
+          ruby -c app/services/spree/payment/refund_allocation.rb
+          ruby -c spec/services/spree/g2_transaction_path_spec.rb
       - name: Test application
         run: bundle exec rake test_app
       - name: Financial integrity specs
@@ -66,4 +77,4 @@ jobs:
           bundle exec rspec spec/services/spree/allocation_financial_integrity_spec.rb
           bundle exec rspec spec/services/spree/payment_capture_spec.rb
           bundle exec rspec spec/services/spree/order_lifecycle_integrity_spec.rb
-
+          bundle exec rspec spec/services/spree/g2_transaction_path_spec.rb
