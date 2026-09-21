@@ -35,6 +35,7 @@ jobs:
         run: |
           gem install bundler -v 4.0.17 --no-document
           bundle lock --add-platform x86_64-linux
+          bundle update spree_frontend spree_auth_devise --conservative
           bundle config set --local path vendor/bundle
           bundle check || bundle install --jobs 4 --retry 3
           bundle check
