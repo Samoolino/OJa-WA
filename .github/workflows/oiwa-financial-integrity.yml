@@ -35,7 +35,7 @@ jobs:
         run: |
           gem install bundler -v 2.5.23 --no-document
           bundle lock --add-platform x86_64-linux
-          bundle update spree spree_backend spree_emails spree_frontend spree_auth_devise --conservative
+          bundle install --jobs 4 --retry 3
           bundle config set --local path vendor/bundle
           bundle check || bundle install --jobs 4 --retry 3
           bundle check
