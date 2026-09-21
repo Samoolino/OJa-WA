@@ -56,7 +56,7 @@ jobs:
             end
             frontend = specs["spree_frontend"] || []
             abort("missing spree_frontend") if frontend.empty?
-            abort("spree_frontend incompatible with Spree 4.7 core: #{frontend.inspect}") unless frontend.all? { |version| version.start_with?("4.8.") || version.start_with?("4.7.") }
+            abort("spree_frontend incompatible with Spree 4.7 core: #{frontend.inspect}") unless frontend.all? { |version| version.start_with?("4.7.") }
             auth = specs["spree_auth_devise"] || []
             abort("missing spree_auth_devise") if auth.empty?
             abort("spree_auth_devise incompatible: #{auth.inspect}") unless auth.all? { |version| version.start_with?("4.6.") }
