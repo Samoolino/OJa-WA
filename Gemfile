@@ -1,8 +1,8 @@
 source 'https://rubygems.org'
 
-# Spree 4.7 application family. Legacy frontend and auth-devise are
-# maintained on their compatible release lines rather than forced to a
-# non-existent 4.7 frontend branch.
+# Spree 4.7 core/backend/emails; companion extensions remain on their
+# maintained branches because those repositories do not expose a matching
+# 4.7 branch.
 gem 'spree', github: 'spree/spree', branch: '4-7-stable'
 gem 'spree_emails', github: 'spree/spree', branch: '4-7-stable'
 gem 'spree_backend', github: 'spree/spree_backend', branch: '4-7-stable'
