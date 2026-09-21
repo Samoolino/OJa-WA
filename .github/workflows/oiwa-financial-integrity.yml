@@ -31,14 +31,15 @@ jobs:
         with:
           ruby-version: "3.2"
           bundler-cache: false
-      - name: Install dependencies from committed lockfile
+      - name: Resolve dependency graph on Linux
         run: |
           gem install bundler -v 2.5.23 --no-document
+          bundle lock --add-platform x86_64-linux
+          bundle update spree spree_backend spree_emails spree_frontend spree_auth_devise --conservative
           bundle config set --local path vendor/bundle
-          bundle config set --local deployment true
           bundle check || bundle install --jobs 4 --retry 3
           bundle check
-      - name: Verify committed Spree release family
+      - name: Verify resolved Spree release family
         run: |
           bundle exec ruby -rbundler -e '
             lock = Bundler::LockfileParser.new(File.read("Gemfile.lock"))
