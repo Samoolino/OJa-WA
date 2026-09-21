@@ -48,7 +48,7 @@ jobs:
               "spree" => /^4\.7\./,
               "spree_backend" => /^4\.7\./,
               "spree_emails" => /^4\.7\./,
-              "spree_frontend" => /^4\.7\./,
+              "spree_frontend" => /^4\.8\./,
               "spree_auth_devise" => /^4\.6\./
             }
             checks.each do |name, pattern|
