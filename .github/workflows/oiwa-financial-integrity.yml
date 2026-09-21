@@ -47,15 +47,19 @@ jobs:
             checks = {
               "spree" => /^4\.7\./,
               "spree_backend" => /^4\.7\./,
-              "spree_emails" => /^4\.7\./,
-              "spree_frontend" => /^4\.8\./,
-              "spree_auth_devise" => /^4\.6\./
+              "spree_emails" => /^4\.7\./
             }
             checks.each do |name, pattern|
               versions = specs[name]
               abort("missing #{name}") if versions.nil? || versions.empty?
               abort("#{name} incompatible: #{versions.inspect}") unless versions.all? { |version| version.match?(pattern) }
             end
+            frontend = specs["spree_frontend"] || []
+            abort("missing spree_frontend") if frontend.empty?
+            abort("spree_frontend incompatible with Spree 4.7 core: #{frontend.inspect}") unless frontend.all? { |version| version.start_with?("4.8.") || version.start_with?("4.7.") }
+            auth = specs["spree_auth_devise"] || []
+            abort("missing spree_auth_devise") if auth.empty?
+            abort("spree_auth_devise incompatible: #{auth.inspect}") unless auth.all? { |version| version.start_with?("4.6.") }
           '
       - name: Syntax check
         run: |
