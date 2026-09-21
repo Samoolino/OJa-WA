@@ -65,10 +65,10 @@ GIT
 
 GIT
   remote: https://github.com/spree/spree_backend.git
-  revision: dcae4404107bccc4d35022299159f99df80a1dd6
-  branch: main
+  revision: b3fd22e87eefbffc869215f97273cceb99171290
+  branch: 4-7-stable
   specs:
-    spree_backend (4.8.4)
+    spree_backend (4.7.2)
       babel-transpiler (~> 0.7)
       bootstrap (~> 4.0)
       flag-icons-rails (~> 3.4)
