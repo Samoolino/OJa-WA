@@ -30,10 +30,13 @@ jobs:
         with:
           ruby-version: "3.2"
           bundler-cache: false
-      - name: Normalize bundle platform
+      - name: Prepare deterministic Linux bundle
         run: |
+          gem install bundler -v 4.0.17 --no-document
           bundle lock --add-platform x86_64-linux
+          bundle config set --local path vendor/bundle
           bundle check || bundle install --jobs 4 --retry 3
+          bundle check
       - name: Syntax check
         run: |
           ruby -c app/models/spree/plan_allocation.rb
