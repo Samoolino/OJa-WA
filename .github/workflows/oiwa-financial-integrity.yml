@@ -31,24 +31,30 @@ jobs:
         with:
           ruby-version: "3.2"
           bundler-cache: false
-      - name: Prepare deterministic Linux bundle
+      - name: Install dependencies from committed lockfile
         run: |
-          gem install bundler -v 4.0.17 --no-document
-          bundle lock --add-platform x86_64-linux
-          bundle update spree_frontend spree_auth_devise --conservative
+          gem install bundler -v 2.5.23 --no-document
           bundle config set --local path vendor/bundle
+          bundle config set --local deployment true
           bundle check || bundle install --jobs 4 --retry 3
           bundle check
-      - name: Verify Spree release family
+      - name: Verify committed Spree release family
         run: |
           bundle exec ruby -rbundler -e '
             lock = Bundler::LockfileParser.new(File.read("Gemfile.lock"))
-            specs = lock.specs_by_name.transform_values { |specs| specs.map(&:version).map(&:to_s).uniq }
-            abort("spree core family mismatch: #{specs["spree"].inspect}") unless specs["spree"]&.all? { |v| v.start_with?("4.7.") }
-            abort("spree backend family mismatch: #{specs["spree_backend"].inspect}") unless specs["spree_backend"]&.all? { |v| v.start_with?("4.7.") }
-            abort("spree emails family mismatch: #{specs["spree_emails"].inspect}") unless specs["spree_emails"]&.all? { |v| v.start_with?("4.7.") }
-            abort("spree frontend family mismatch: #{specs["spree_frontend"].inspect}") unless specs["spree_frontend"]&.all? { |v| v.start_with?("4.7.") }
-            abort("spree auth-devise family mismatch: #{specs["spree_auth_devise"].inspect}") unless specs["spree_auth_devise"]&.all? { |v| v.start_with?("4.6.") }
+            specs = lock.specs_by_name.transform_values { |items| items.map(&:version).map(&:to_s).uniq }
+            checks = {
+              "spree" => /^4\.7\./,
+              "spree_backend" => /^4\.7\./,
+              "spree_emails" => /^4\.7\./,
+              "spree_frontend" => /^4\.7\./,
+              "spree_auth_devise" => /^4\.6\./
+            }
+            checks.each do |name, pattern|
+              versions = specs[name]
+              abort("missing #{name}") if versions.nil? || versions.empty?
+              abort("#{name} incompatible: #{versions.inspect}") unless versions.all? { |version| version.match?(pattern) }
+            end
           '
       - name: Syntax check
         run: |
