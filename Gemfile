@@ -13,5 +13,7 @@ gem 'rails-controller-testing'
 gem 'redis', '~> 5.0'
 # Rails 7.1 ActiveSupport RedisCacheStore expects the 2.x ConnectionPool API.
 gem 'connection_pool', '~> 2.5'
+# PostgreSQL is the CI/test database adapter used by the dummy application.
+gem 'pg', '~> 1.5'
 
 gemspec
