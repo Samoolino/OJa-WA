@@ -12,6 +12,7 @@ gem 'spree_auth_devise', github: 'spree/spree_auth_devise', ref: 'b4a99d75d5e19c
 gem 'rails-controller-testing'
 gem 'rspec-rails', '~> 6.0'
 gem 'rspec-core', '~> 3.13'
+gem 'shoulda-matchers', '~> 7.0'
 gem 'redis', '~> 5.0'
 # Rails 7.1 ActiveSupport RedisCacheStore expects the 2.x ConnectionPool API.
 gem 'connection_pool', '~> 2.5'
