@@ -89,6 +89,10 @@ jobs:
           test -d spec/dummy
           cd spec/dummy
           bundle exec rails db:migrate
+      - name: Prepare extension schema
+        run: |
+          bundle exec rails db:migrate RAILS_ENV=test
+
       - name: Financial integrity specs
         run: |
           bundle exec rspec spec/services/spree/allocation_financial_integrity_spec.rb
