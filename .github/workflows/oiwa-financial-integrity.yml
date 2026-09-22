@@ -84,6 +84,11 @@ jobs:
           ruby -c spec/services/spree/g2_transaction_path_spec.rb
       - name: Test application
         run: bundle exec rake test_app
+      - name: Prepare dummy database schema
+        run: |
+          test -d spec/dummy
+          cd spec/dummy
+          bundle exec rails db:migrate
       - name: Financial integrity specs
         run: |
           bundle exec rspec spec/services/spree/allocation_financial_integrity_spec.rb
