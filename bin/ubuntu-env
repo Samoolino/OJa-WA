@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$ROOT"
+
+if [[ ! -f .env ]]; then
+  echo "Missing .env. Create it from .env.example:"
+  echo "  cp .env.example .env"
+  exit 1
+fi
+
+set -a
+source .env
+set +a
+
+required=(ruby bundle psql redis-server)
+for cmd in "${required[@]}"; do
+  if ! command -v "$cmd" >/dev/null 2>&1; then
+    echo "Missing required command: $cmd" >&2
+    exit 1
+  fi
+done
+
+ruby -v
+bundle -v
+psql --version
+redis-server --version
+
+export RAILS_ENV="${RAILS_ENV:-development}"
+export BUNDLE_GEMFILE="$ROOT/Gemfile"
+
+bundle check || bundle install --jobs 4 --retry 3
+bundle exec rails db:prepare
+
+echo
+echo "OJa-WA Ubuntu environment loaded."
+echo "RAILS_ENV=$RAILS_ENV"
+echo "DATABASE_URL=$DATABASE_URL"
+echo "REDIS_URL=$REDIS_URL"
+echo "Hermes profile=${HERMES_ENV:-unset} command=${HERMES_COMMAND:-unset}"
+echo
+echo "Start Rails with: bundle exec rails server -b ${HOST:-127.0.0.1} -p ${PORT:-3000}"
