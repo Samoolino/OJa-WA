@@ -19,3 +19,6 @@ public/spree
 .ruby-gemset
 gemfiles/*.gemfile.lock
 *.gem
+.env
+.env.*
+!.env.example
