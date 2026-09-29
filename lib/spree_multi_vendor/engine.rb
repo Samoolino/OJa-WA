@@ -1,3 +1,4 @@
+require_relative '../spree_extension/migration'
 require_relative 'configuration'
 
 module SpreeMultiVendor
