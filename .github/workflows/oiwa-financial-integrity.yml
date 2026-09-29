@@ -91,6 +91,8 @@ jobs:
           bundle exec rails db:migrate
       - name: Prepare extension schema
         run: |
+          test -d spec/dummy
+          cd spec/dummy
           bundle exec rails db:migrate RAILS_ENV=test
 
       - name: Financial integrity specs
